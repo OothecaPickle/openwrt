@@ -216,7 +216,25 @@ platform_do_upgrade() {
 		nand_do_upgrade "$1"
 		;;
 	linksys,homewrk)
-		CI_UBIPART="rootfs"
+		switch_part="$(fw_printenv -n switch_part)"
+		if [ -n "$UPGRADE_OPT_USE_CURR_PART" ]; then
+			if [ "$switch_part" -eq "2" ]; then
+				CI_UBIPART="rootfs_1"
+				fw_setenv msmparts "0x1db00000@0x4a00000(fs)"
+			else
+				fw_setenv msmparts
+			fi
+		else
+			if [ "$switch_part" -eq "1" ]; then
+				fw_setenv switch_part 2
+				CI_UBIPART="rootfs_1"
+				fw_setenv msmparts "0x1db00000@0x4a00000(fs)"
+			else
+				fw_setenv switch_part 1
+				fw_setenv msmparts
+			fi
+		fi
+		fw_setenv switch_num
 		remove_oem_ubi_volume ubi_rootfs
 		nand_do_upgrade "$1"
 		;;
